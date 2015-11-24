@@ -13,23 +13,34 @@ function kmex (uri) {
 
 		var api = {
 			insert: insert.bind(context, name),
+			update: update.bind(context, name),
 
 			select: select.bind(context, name),
 			where: where.bind(context, name),
 			orderBy: orderBy.bind(context, name),
 			limit: limit.bind(context, name),
-			then: then.bind(context, name),
-			first: first.bind(context, name)
+			first: first.bind(context, name),
+
+			then: then.bind(context, name)
 		};
 
 		return api;
 
 		function insert (name, itemOrItems) {
-			return getCollection(name).then(function (collection) {
-				return _.isArray(itemOrItems)
-					? collection.insertManyAsync(itemOrItems)
-					: collection.insertAsync(itemOrItems);
-			});
+			this.insert = itemOrItems;
+			return api;
+		}
+
+		function update (name, item, options) {
+			this.update = { $set: item };
+			this.updateOptions = _.defaults(options || {}, { multi: isMulti.call(this) });
+			return api;
+
+			function isMulti () {
+				return _(this.update).keys().all(function (op) {
+					return _.startsWith(op, '$');
+				});
+			}
 		}
 
 		function select (name, fields) {
@@ -38,7 +49,7 @@ function kmex (uri) {
 		}
 
 		function where (name, query) {
-			this.find = find;
+			this.find = query;
 			return api;
 		} 
 
@@ -52,25 +63,45 @@ function kmex (uri) {
 			return api;
 		}
 
-		function then (name, fn) {
-			return getCollection(name).then(function (collection) {
-				var cursor = collection.find(this.find || this.projection && {}, this.projection);
-				if (this.sort) {
-					cursor = cursor.sort(this.sort);
-				}
-				if (this.limit) {
-					cursor = cursor.limit(this.limit);
-				}
-				return this.first 
-					? cursor.toArrayAsync().then(function (rows) { return rows[0]; })
-					: cursor.toArrayAsync();
-			}.bind(this)).then(fn);
-		}
-
 		function first (name) {
 			this.limit = 1;
 			this.first = true;
 			return api;
+		}
+
+		function then (name, fn) {
+			return getCollection(name).then(function (collection) {
+				if (this.insert) {
+					return doInsert.call(this, collection);
+				} else if (this.update) {
+					return doUpdate.call(this, collection);
+				} else {
+					return doSelect.call(this, collection);
+				}
+			}.bind(this)).then(fn);
+		}
+
+		function doInsert (collection) {
+			return _.isArray(this.insert)
+					? collection.insertManyAsync(this.insert)
+					: collection.insertAsync(this.insert);
+		}
+
+		function doUpdate (collection) {
+			return collection.updateAsync(this.find, this.update, this.updateOptions);
+		}
+
+		function doSelect (collection) {
+			var cursor = collection.find(this.find || this.projection && {}, this.projection);
+			if (this.sort) {
+				cursor = cursor.sort(this.sort);
+			}
+			if (this.limit) {
+				cursor = cursor.limit(this.limit);
+			}
+			return this.first 
+				? cursor.toArrayAsync().then(function (rows) { return rows[0]; })
+				: cursor.toArrayAsync();
 		}
 	}
 
