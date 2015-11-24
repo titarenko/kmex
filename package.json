@@ -1,0 +1,33 @@
+{
+  "name": "kmex",
+  "version": "0.0.1",
+  "description": "Like knex, but for MongoDB",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/titarenko/kmex.git"
+  },
+  "keywords": [
+    "knex",
+    "kmex",
+    "sql",
+    "nosql",
+    "mysql",
+    "postgresql",
+    "mongodb"
+  ],
+  "author": "Constantin Titarenko",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/titarenko/kmex/issues"
+  },
+  "homepage": "https://github.com/titarenko/kmex#readme",
+  "dependencies": {
+    "bluebird": "^3.0.5",
+    "lodash": "^3.10.1",
+    "mongodb": "^2.0.49"
+  }
+}
