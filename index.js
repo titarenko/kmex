@@ -45,8 +45,8 @@ function kmex (uri) {
 			return api;
 		}
 
-		function select (name, fields) {
-			this.project = fields;
+		function select (name) {
+			this.projection = Array.prototype.slice.call(arguments, 1);
 			return api;
 		}
 
