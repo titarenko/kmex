@@ -14,6 +14,7 @@ function kmex (uri) {
 		var api = {
 			insert: insert.bind(context, name),
 			update: update.bind(context, name),
+			orInsert: orInsert.bind(context, name),
 
 			select: select.bind(context, name),
 			where: where.bind(context, name),
@@ -31,16 +32,17 @@ function kmex (uri) {
 			return api;
 		}
 
+
 		function update (name, item, options) {
 			this.update = { $set: item };
-			this.updateOptions = _.defaults(options || {}, { multi: isMulti.call(this) });
+			this.updateOptions = _.defaults(options || {}, { multi: true });
 			return api;
+		}
 
-			function isMulti () {
-				return _(this.update).keys().all(function (op) {
-					return _.startsWith(op, '$');
-				});
-			}
+		function orInsert (name, item) {
+			this.update['$setOnInsert'] = item;
+			this.updateOptions.upsert = true;
+			return api;
 		}
 
 		function select (name, fields) {
