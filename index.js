@@ -16,6 +16,9 @@ function kmex (uri) {
 			update: update.bind(context, name),
 			orInsert: orInsert.bind(context, name),
 
+			del: del.bind(context, name),
+			remove: del.bind(context, name),
+
 			select: select.bind(context, name),
 			where: where.bind(context, name),
 			orderBy: orderBy.bind(context, name),
@@ -39,8 +42,12 @@ function kmex (uri) {
 			return api;
 		}
 
+		function del () {
+			this.del = true;
+		}
+
 		function orInsert (name, item) {
-			this.update['$setOnInsert'] = item;
+			this.update['$setOnInsert'] = _.omit(item, _.keys(this.update));
 			this.updateOptions.upsert = true;
 			return api;
 		}
@@ -77,6 +84,8 @@ function kmex (uri) {
 					return doInsert.call(this, collection);
 				} else if (this.update) {
 					return doUpdate.call(this, collection);
+				} else if (this.del) {
+					return doDelete.call(this, collection);
 				} else {
 					return doSelect.call(this, collection);
 				}
@@ -91,6 +100,10 @@ function kmex (uri) {
 
 		function doUpdate (collection) {
 			return collection.updateAsync(this.find, this.update, this.updateOptions);
+		}
+
+		function doDelete (collection) {
+			return collection.removeAsync(this.find)
 		}
 
 		function doSelect (collection) {

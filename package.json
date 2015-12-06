@@ -1,6 +1,6 @@
 {
   "name": "kmex",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Like knex, but for MongoDB",
   "main": "index.js",
   "scripts": {
