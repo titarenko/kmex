@@ -25,7 +25,8 @@ function kmex (uri) {
 			limit: limit.bind(context, name),
 			first: first.bind(context, name),
 
-			then: then.bind(context, name)
+			then: then.bind(context, name),
+			catch: doCatch.bind(context, name)
 		};
 
 		return api;
@@ -90,6 +91,10 @@ function kmex (uri) {
 					return doSelect.call(this, collection);
 				}
 			}.bind(this)).then(fn);
+		}
+
+		function doCatch (name, errorType, handler) {
+			return then.call(this, name, function () {}).catch(errorType, handler);
 		}
 
 		function doInsert (collection) {
