@@ -48,7 +48,7 @@ function kmex (uri) {
 		}
 
 		function orInsert (name, item) {
-			this.update['$setOnInsert'] = _.omit(item, _.keys(this.update));
+			this.update['$setOnInsert'] = _.omit(item, _.keys(this.update.$set));
 			this.updateOptions.upsert = true;
 			return api;
 		}
