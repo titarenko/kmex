@@ -25,7 +25,10 @@ function kmex (uri) {
 			limit: limit.bind(context, name),
 			first: first.bind(context, name),
 
+			aggregate: aggregate.bind(context, name),
+
 			then: then.bind(context, name),
+			map: map.bind(context, name),
 			catch: doCatch.bind(context, name)
 		};
 
@@ -79,6 +82,12 @@ function kmex (uri) {
 			return api;
 		}
 
+		function aggregate (name) {
+			var pipeline = _.slice(arguments, 1);
+			this.aggregate = pipeline;
+			return api;
+		}
+
 		function then (name, fn) {
 			return getCollection(name).then(function (collection) {
 				if (this.insert) {
@@ -87,10 +96,18 @@ function kmex (uri) {
 					return doUpdate.call(this, collection);
 				} else if (this.del) {
 					return doDelete.call(this, collection);
+				} else if (this.aggregate) {
+					return doAggregate.call(this, collection);
 				} else {
 					return doSelect.call(this, collection);
 				}
 			}.bind(this)).then(fn);
+		}
+
+		function map (name, fn, options) {
+			return then.call(this, name, function (results) {
+				return Promise.resolve(results).map(fn, options);
+			});
 		}
 
 		function doCatch (name, errorType, handler) {
@@ -108,7 +125,11 @@ function kmex (uri) {
 		}
 
 		function doDelete (collection) {
-			return collection.removeAsync(this.find)
+			return collection.removeAsync(this.find);
+		}
+
+		function doAggregate (collection) {
+			return collection.aggregate(this.pipeline, { allowDiskUse: true }).toArrayAsync();
 		}
 
 		function doSelect (collection) {
