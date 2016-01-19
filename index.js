@@ -129,7 +129,7 @@ function kmex (uri) {
 		}
 
 		function doAggregate (collection) {
-			return collection.aggregate(this.pipeline, { allowDiskUse: true }).toArrayAsync();
+			return collection.aggregate(this.aggregate, { allowDiskUse: true }).toArrayAsync();
 		}
 
 		function doSelect (collection) {
