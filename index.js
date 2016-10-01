@@ -27,10 +27,20 @@ function kmex (uri) {
 
 			aggregate: aggregate.bind(context, name),
 
-			then: then.bind(context, name),
-			map: map.bind(context, name),
-			catch: doCatch.bind(context, name)
+			then: then.bind(context, name)
 		};
+
+		[
+			'bind', 'catch', 'finally', 'asCallback', 
+			'spread', 'map', 'reduce', 'tap', 'thenReturn',
+			'return', 'yield', 'ensure', 'reflect'
+		].forEach(function (method) {
+			api[method] = function () {
+				var then = this.then();
+				then = then[method].apply(then, arguments);
+				return then;
+			};
+		});
 
 		return api;
 
@@ -38,7 +48,6 @@ function kmex (uri) {
 			this.insert = itemOrItems;
 			return api;
 		}
-
 
 		function update (name, item, options) {
 			this.update = { $set: item };
@@ -91,7 +100,7 @@ function kmex (uri) {
 			return api;
 		}
 
-		function then (name, fn) {
+		function then (name, resolve, reject) {
 			return getCollection(name).then(function (collection) {
 				if (this.insert) {
 					return doInsert.call(this, collection);
@@ -104,17 +113,7 @@ function kmex (uri) {
 				} else {
 					return doSelect.call(this, collection);
 				}
-			}.bind(this)).then(fn);
-		}
-
-		function map (name, fn, options) {
-			return then.call(this, name, function (results) {
-				return Promise.resolve(results).map(fn, options);
-			});
-		}
-
-		function doCatch (name, errorType, handler) {
-			return then.call(this, name, function () {}).catch(errorType, handler);
+			}.bind(this)).then(resolve, reject);
 		}
 
 		function doInsert (collection) {
@@ -155,16 +154,18 @@ function kmex (uri) {
 		});
 	}
 
-	function close () {
-		return getConnection().then(function (connection) {
-			return connection.close();
-		});
-	}
-
 	var connectionPromise;
 	function getConnection () {
 		return connectionPromise || (
 			connectionPromise = mongodb.MongoClient.connectAsync(uri)
 		);
+	}
+
+	function close () {
+		return getConnection().then(function (connection) {
+			return connection.close();
+		}).finally(function () {
+			connectionPromise = null
+		});
 	}
 }
