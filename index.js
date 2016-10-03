@@ -75,8 +75,12 @@ function kmex (uri) {
 
 		function where (name, query) {
 			this.find = query;
+			if (this.id || this._id) {
+				this._id = mongodb.ObjectID(this.id || this._id);
+				delete this.id;
+			}
 			return api;
-		} 
+		}
 
 		function orderBy (name, field, direction) {
 			this.sort = _.zipObject([field], [direction == 'desc' ? -1 : 1]);
