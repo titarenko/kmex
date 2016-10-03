@@ -74,10 +74,13 @@ function kmex (uri) {
 		}
 
 		function where (name, query) {
-			this.find = query;
-			if (this.id || this._id) {
-				this._id = mongodb.ObjectID(this.id || this._id);
-				delete this.id;
+			this.find = { };
+			for (var i in query) {
+				if (query.hasOwnProperty(i)) {
+					this.find[i == 'id' ? '_id' : i] = i == 'id' || i == '_id'
+						? mongodb.ObjectID(query[i])
+						: query[i];
+				}
 			}
 			return api;
 		}
